@@ -10,7 +10,13 @@ import {
 import React from "react";
 import { format, formatDistanceToNow } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
   BarChart,
@@ -136,15 +142,15 @@ const DashboardView = ({ insights }) => {
       </div>
 
       <Card>
-          <CardHeader >
-            <CardTitle >Salary Ranges by Role</CardTitle>
-           <CardDescription>
+        <CardHeader>
+          <CardTitle>Salary Ranges by Role</CardTitle>
+          <CardDescription>
             Displaying minimum, median, and maximum salaries (in thousands)
-           </CardDescription>
-          </CardHeader>
-          <CardContent>
-          <div className="h-[400px]" >
-          <ResponsiveContainer width="100%" height="100%">
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={salaryData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
@@ -172,8 +178,45 @@ const DashboardView = ({ insights }) => {
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Key Industry Trends</CardTitle>
+            <CardDescription>
+              Current trends shaping the industry
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-3">
+              {insights.keyTrends.map((trend, index) => (
+                <li key={index} className="flex items-start space-x-2">
+                  <div className="h-2 w-2 mt-2 rounded-full bg-primary" />
+                  <span>{trend}</span>
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recommended Skills</CardTitle>
+            <CardDescription>Skills to consider developing</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+            {insights.recommendedSkills.map((skill) => (
+              <Badge key={skill} variant="outline" style={{ fontSize: '14px', padding: '6px 10px' }}>
+                {skill}
+              </Badge>
+            ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
