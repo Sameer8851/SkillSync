@@ -4,18 +4,20 @@ import { redirect } from "next/navigation";
 import DashboardView from "./_components/dashboard-view";
 
 
+export default async function DashboardPage() {
+const { isOnboarded } = await getUserOnboardingStatus();
 
-const IndustryInsightsPage = async () => {
-  const { isOnboarded } = await getUserOnboardingStatus();
-  const insights = await getIndustryInsights();
-
+  // If not onboarded, redirect to onboarding page
+  // Skip this check if already on the onboarding page
   if (!isOnboarded) {
     redirect("/onboarding");
   }
 
-  return <div className="container mx-auto">
-    <DashboardView insights={insights} />
-  </div>;
-};
+  const insights = await getIndustryInsights();
 
-export default IndustryInsightsPage;
+  return (
+    <div className="container mx-auto">
+      <DashboardView insights={insights} />
+    </div>
+  );
+}

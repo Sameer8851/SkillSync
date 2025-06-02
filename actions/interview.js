@@ -1,4 +1,5 @@
 "use server";
+
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -12,30 +13,35 @@ export async function generateQuiz() {
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
+    select: {
+      industry: true,
+      skills: true,
+    },
   });
+
   if (!user) throw new Error("User not found");
 
   const prompt = `
-  Generate 10 technical interview questions for a ${
-    user.industry
-  } professional${
+    Generate 10 technical interview questions for a ${
+      user.industry
+    } professional${
     user.skills?.length ? ` with expertise in ${user.skills.join(", ")}` : ""
   }.
-  
-  Each question should be multiple choice with 4 options.
-  
-  Return the response in this JSON format only, no additional text:
-  {
-    "questions": [
-      {
-        "question": "string",
-        "options": ["string", "string", "string", "string"],
-        "correctAnswer": "string",
-        "explanation": "string"
-      }
-    ]
-  }
-`;
+    
+    Each question should be multiple choice with 4 options.
+    
+    Return the response in this JSON format only, no additional text:
+    {
+      "questions": [
+        {
+          "question": "string",
+          "options": ["string", "string", "string", "string"],
+          "correctAnswer": "string",
+          "explanation": "string"
+        }
+      ]
+    }
+  `;
 
   try {
     const result = await model.generateContent(prompt);
@@ -69,11 +75,13 @@ export async function saveQuizResult(questions, answers, score) {
     explanation: q.explanation,
   }));
 
+  // Get wrong answers
   const wrongAnswers = questionResults.filter((q) => !q.isCorrect);
-  let improvementTip = null;
 
+  // Only generate improvement tips if there are wrong answers
+  let improvementTip = null;
   if (wrongAnswers.length > 0) {
-    const wrongQuesitonText = wrongAnswers
+    const wrongQuestionsText = wrongAnswers
       .map(
         (q) =>
           `Question: "${q.question}"\nCorrect Answer: "${q.answer}"\nUser Answer: "${q.userAnswer}"`
@@ -98,6 +106,7 @@ export async function saveQuizResult(questions, answers, score) {
       console.log(improvementTip);
     } catch (error) {
       console.error("Error generating improvement tip:", error);
+      // Continue without improvement tip if generation fails
     }
   }
 
@@ -116,5 +125,32 @@ export async function saveQuizResult(questions, answers, score) {
   } catch (error) {
     console.error("Error saving quiz result:", error);
     throw new Error("Failed to save quiz result");
+  }
+}
+
+export async function getAssessments() {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const user = await db.user.findUnique({
+    where: { clerkUserId: userId },
+  });
+
+  if (!user) throw new Error("User not found");
+
+  try {
+    const assessments = await db.assessment.findMany({
+      where: {
+        userId: user.id,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    return assessments;
+  } catch (error) {
+    console.error("Error fetching assessments:", error);
+    throw new Error("Failed to fetch assessments");
   }
 }

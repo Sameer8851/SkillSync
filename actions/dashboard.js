@@ -50,8 +50,12 @@ export async function getIndustryInsights() {
       industryInsight: true,
     },
   });
+  
 
   if (!user) throw new Error("User not found");
+  if (!user.industry) {
+      throw new Error("Industry must not be null");
+  }
 
   if (!user.industryInsight) {
     const insights = await generateAIInsights(user.industry);
