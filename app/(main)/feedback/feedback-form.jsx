@@ -6,6 +6,8 @@ import { saveFeedback } from "@/actions/save-feedback";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner"
+
 import {
   Card,
   CardContent,
@@ -33,25 +35,36 @@ export default function FeedbackForm() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    if (isOverLimit || isEmpty) return;
+  if (!user) {
+  toast.error("Please sign in first to leave feedback.");
+  return;
 
-    try {
-      await saveFeedback({
-        name: user?.fullName,
-        email: user?.primaryEmailAddress?.emailAddress,
-        role: form.role,
-        message: form.message,
-        rating: form.rating,
-      });
-      setSubmitted(true);
-    } catch (err) {
-      setError("❌ Something went wrong. Please try again.");
-      console.error("Feedback error:", err);
-    }
-  };
+  }
+
+  if (isOverLimit || isEmpty) {
+    setShake(true);
+    setTimeout(() => setShake(false), 500);
+    return;
+  }
+
+  try {
+    await saveFeedback({
+      name: user?.fullName,
+      email: user?.primaryEmailAddress?.emailAddress,
+      role: form.role,
+      message: form.message,
+      rating: form.rating,
+    });
+    setSubmitted(true);
+  } catch (err) {
+    setError("❌ Something went wrong. Please try again.");
+    console.error("Feedback error:", err);
+  }
+};
+
 
   return (
     <Card className="bg-background border border-muted-foreground/10 shadow-md">
